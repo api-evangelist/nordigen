@@ -1,0 +1,32 @@
+aid: nordigen
+name: Nordigen
+description: "Connect to bank accounts using official bank APIs and get raw transaction data"
+url: https://nordigen.com/en/account_information_documenation/integration/quickstart_guide/
+specificationVersion: '0.20'
+created: '2026-05-28'
+modified: '2026-05-28'
+x-source: public-apis/public-apis
+x-category: "Finance"
+x-tier: 3
+x-tier-reason: bulk-registered-from-public-apis
+tags:
+  - Finance
+  - Public APIs
+apis:
+  - name: Nordigen
+    description: "Connect to bank accounts using official bank APIs and get raw transaction data"
+    humanURL: https://nordigen.com/en/account_information_documenation/integration/quickstart_guide/
+    baseURL: https://nordigen.com/en/account_information_documenation/integration/quickstart_guide/
+    tags:
+      - Finance
+    properties:
+      - type: Documentation
+        url: https://nordigen.com/en/account_information_documenation/integration/quickstart_guide/
+common:
+  - type: Website
+    url: https://nordigen.com/en/account_information_documenation/integration/quickstart_guide/
+  - type: PublicAPIsListing
+    url: https://github.com/public-apis/public-apis
+maintainers:
+  - FN: Kin Lane
+    email: kin@apievangelist.com
