@@ -1,0 +1,664 @@
+"""
+GoCardless (Nordigen) Bank Account Data API - GraphQL Schema
+Conceptual schema representing the Nordigen open banking REST API for EU bank data access.
+Based on the GoCardless Bank Account Data API v2.
+"""
+
+# ─── Scalars ────────────────────────────────────────────────────────────────
+
+scalar DateTime
+scalar Date
+scalar URL
+scalar JSON
+
+# ─── Enumerations ────────────────────────────────────────────────────────────
+
+enum AccessScope {
+  BALANCES
+  DETAILS
+  TRANSACTIONS
+}
+
+enum AgreementStatus {
+  CREATED
+  GIVEN
+  REVOKED
+  EXPIRED
+}
+
+enum RequisitionStatus {
+  CR
+  ID
+  LN
+  RJ
+  ER
+  SU
+  EX
+  GA
+  UA
+  SA
+  UA
+}
+
+enum AccountStatus {
+  DISCOVERED
+  PROCESSING
+  READY
+  DELETED
+  SUSPENDED
+  ERROR
+  BLOCKED
+}
+
+enum AccountType {
+  CACC
+  CASH
+  CHAR
+  CISH
+  COMM
+  CPAC
+  LLSV
+  LOAN
+  MGLD
+  MOMA
+  NREX
+  ODFT
+  ONDP
+  OTHR
+  SACC
+  SLRY
+  SVGS
+  TAXE
+  TRAN
+  TRAS
+}
+
+enum BalanceType {
+  CLOSING_AVAILABLE
+  CLOSING_BOOKED
+  CLOSING_CLEARED
+  EXPECTED
+  FORWARD_AVAILABLE
+  INFORMATION
+  INTERIM_AVAILABLE
+  INTERIM_BOOKED
+  INTERIM_CLEARED
+  OPENING_AVAILABLE
+  OPENING_BOOKED
+  OPENING_CLEARED
+  PREVIOUSLY_CLOSED_BOOKED
+}
+
+enum TransactionStatus {
+  BOOKED
+  PENDING
+  INFORMATION
+}
+
+enum PaymentStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
+  CANCELLED
+}
+
+enum Scope {
+  READ
+  WRITE
+}
+
+# ─── Supporting Types ────────────────────────────────────────────────────────
+
+type CountryCode {
+  code: String!
+  name: String!
+}
+
+type CurrencyCode {
+  code: String!
+  name: String!
+  symbol: String
+}
+
+type Currency {
+  code: CurrencyCode!
+  name: String!
+  symbol: String
+}
+
+type Country {
+  code: CountryCode!
+  name: String!
+  institutions: [Institution!]
+}
+
+type IBAN {
+  value: String!
+  countryCode: String
+  bankCode: String
+  accountNumber: String
+}
+
+type BIC {
+  value: String!
+  bankCode: String
+  countryCode: String
+  locationCode: String
+  branchCode: String
+}
+
+type Logo {
+  url: URL!
+  altText: String
+  width: Int
+  height: Int
+}
+
+type Color {
+  primary: String
+  secondary: String
+  background: String
+}
+
+type Metadata {
+  key: String!
+  value: String!
+}
+
+type Permission {
+  scope: AccessScope!
+  granted: Boolean!
+  grantedAt: DateTime
+}
+
+type Scope {
+  name: String!
+  description: String
+  permissions: [Permission!]
+}
+
+# ─── Token Types ─────────────────────────────────────────────────────────────
+
+type AccessToken {
+  access: String!
+  accessExpires: Int!
+}
+
+type RefreshToken {
+  refresh: String!
+  refreshExpires: Int!
+}
+
+type TokenPair {
+  access: String!
+  accessExpires: Int!
+  refresh: String!
+  refreshExpires: Int!
+}
+
+type APIKey {
+  secretId: String!
+  secretKey: String
+  createdAt: DateTime
+  expiresAt: DateTime
+}
+
+# ─── User Types ──────────────────────────────────────────────────────────────
+
+type UserDetails {
+  id: ID!
+  email: String
+  name: String
+  organizationId: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type User {
+  id: ID!
+  details: UserDetails
+  apiKeys: [APIKey!]
+  agreements: [EndUserAgreement!]
+  requisitions: [Requisition!]
+}
+
+# ─── Institution Types ────────────────────────────────────────────────────────
+
+type InstitutionCountry {
+  code: String!
+  name: String!
+}
+
+type InstitutionDetails {
+  id: ID!
+  name: String!
+  bic: BIC
+  transactionTotalDays: Int
+  countries: [InstitutionCountry!]!
+  logo: Logo
+  maxAccessValidForDays: Int
+  maxAccessValidForDaysReconfirmation: Int
+  supportedFeatures: [String!]
+  supportedPayments: JSON
+}
+
+type Institution {
+  id: ID!
+  name: String!
+  bic: String
+  transactionTotalDays: Int
+  countries: [String!]!
+  logo: String
+  maxAccessValidForDays: Int
+  details: InstitutionDetails
+}
+
+# ─── Provider Types ───────────────────────────────────────────────────────────
+
+type ProviderDetails {
+  id: ID!
+  name: String!
+  description: String
+  website: URL
+  logo: Logo
+  color: Color
+  country: Country
+  supportedCountries: [Country!]
+  apiVersion: String
+}
+
+type Provider {
+  id: ID!
+  name: String!
+  details: ProviderDetails
+  institutions: [Institution!]
+}
+
+# ─── Agreement Types ──────────────────────────────────────────────────────────
+
+type AccessScopeDetails {
+  scope: AccessScope!
+  description: String
+}
+
+type AgreementDetails {
+  id: ID!
+  created: DateTime!
+  institutionId: String!
+  maxHistoricalDays: Int!
+  accessValidForDays: Int!
+  accessScope: [AccessScope!]!
+  accepted: DateTime
+  status: AgreementStatus
+}
+
+type EndUserAgreement {
+  id: ID!
+  created: DateTime!
+  institutionId: String!
+  maxHistoricalDays: Int!
+  accessValidForDays: Int!
+  accessScope: [AccessScope!]!
+  accepted: DateTime
+  details: AgreementDetails
+}
+
+# ─── Requisition Types ────────────────────────────────────────────────────────
+
+type Link {
+  href: URL!
+  rel: String
+  method: String
+}
+
+type RequisitionDetails {
+  id: ID!
+  created: DateTime!
+  redirect: URL
+  status: RequisitionStatus!
+  institutionId: String!
+  agreement: String
+  reference: String
+  accounts: [String!]!
+  userLanguage: String
+  link: URL
+  ssn: String
+  accountSelection: Boolean
+  redirectImmediate: Boolean
+}
+
+type Requisition {
+  id: ID!
+  created: DateTime!
+  redirect: URL
+  status: RequisitionStatus!
+  institutionId: String!
+  agreement: String
+  reference: String
+  accounts: [String!]!
+  userLanguage: String
+  link: URL
+  ssn: String
+  accountSelection: Boolean
+  redirectImmediate: Boolean
+  details: RequisitionDetails
+  accountObjects: [Account!]
+}
+
+# ─── Account Types ────────────────────────────────────────────────────────────
+
+type AccountDetails {
+  resourceId: String
+  iban: String
+  bban: String
+  msisdn: String
+  currency: String
+  ownerName: String
+  name: String
+  displayName: String
+  product: String
+  cashAccountType: AccountType
+  status: AccountStatus
+  bic: String
+  linkedAccounts: String
+  usage: String
+  details: String
+  maskedPan: String
+  pan: String
+}
+
+type Account {
+  id: ID!
+  created: DateTime
+  lastAccessed: DateTime
+  iban: String
+  bban: String
+  institutionId: String!
+  status: AccountStatus!
+  ownerName: String
+  details: AccountDetails
+  balances: AccountBalances
+  transactions: AccountTransactions
+}
+
+# ─── Balance Types ────────────────────────────────────────────────────────────
+
+type TransactionAmount {
+  amount: String!
+  currency: String!
+}
+
+type BalanceDetails {
+  balanceAmount: TransactionAmount!
+  balanceType: BalanceType!
+  creditLimitIncluded: Boolean
+  lastChangeDateTime: DateTime
+  lastCommittedTransaction: String
+  referenceDate: Date
+}
+
+type Balance {
+  balanceAmount: TransactionAmount!
+  balanceType: BalanceType!
+  creditLimitIncluded: Boolean
+  lastChangeDateTime: DateTime
+  referenceDate: Date
+  details: BalanceDetails
+}
+
+type AccountBalances {
+  balances: [Balance!]!
+}
+
+# ─── Transaction Party Types ──────────────────────────────────────────────────
+
+type Creditor {
+  name: String
+  iban: String
+  bban: String
+  pan: String
+  maskedPan: String
+  msisdn: String
+  currency: String
+}
+
+type Debtor {
+  name: String
+  iban: String
+  bban: String
+  pan: String
+  maskedPan: String
+  msisdn: String
+  currency: String
+}
+
+type RemittanceInfo {
+  unstructured: String
+  structured: String
+  reference: String
+}
+
+type MandateDetails {
+  mandateId: String
+  mandateIssuanceDate: Date
+  creditorSchemeId: String
+  creditorId: String
+  creditorName: String
+  creditorAddressLine: [String!]
+}
+
+type Merchant {
+  id: ID
+  name: String
+  categoryCode: String
+  address: String
+}
+
+type MerchantDetails {
+  merchant: Merchant
+  merchantName: String
+  merchantCategoryCode: String
+  terminalId: String
+}
+
+# ─── Transaction Types ────────────────────────────────────────────────────────
+
+type TransactionDate {
+  bookingDate: Date
+  valueDate: Date
+  bookingDateTime: DateTime
+  valueDateTime: DateTime
+}
+
+type TransactionDetails {
+  transactionId: String
+  entryReference: String
+  endToEndId: String
+  mandateId: String
+  checkId: String
+  creditorId: String
+  bookingDate: Date
+  valueDate: Date
+  bookingDateTime: DateTime
+  valueDateTime: DateTime
+  transactionAmount: TransactionAmount!
+  creditorName: String
+  creditorAccount: Creditor
+  ultimateCreditor: String
+  debtorName: String
+  debtorAccount: Debtor
+  ultimateDebtor: String
+  remittanceInformationUnstructured: String
+  remittanceInformationUnstructuredArray: [String!]
+  remittanceInformationStructured: String
+  remittanceInformationStructuredArray: [String!]
+  additionalInformation: String
+  purposeCode: String
+  bankTransactionCode: String
+  proprietaryBankTransactionCode: String
+  currencyExchange: JSON
+  merchantDetails: MerchantDetails
+  mandateDetails: MandateDetails
+}
+
+type Transaction {
+  transactionId: String
+  entryReference: String
+  bookingDate: Date
+  valueDate: Date
+  bookingDateTime: DateTime
+  valueDateTime: DateTime
+  transactionAmount: TransactionAmount!
+  status: TransactionStatus!
+  creditorName: String
+  creditorAccount: Creditor
+  debtorName: String
+  debtorAccount: Debtor
+  remittanceInformationUnstructured: String
+  bankTransactionCode: String
+  proprietaryBankTransactionCode: String
+  details: TransactionDetails
+}
+
+type AccountTransactions {
+  booked: [Transaction!]!
+  pending: [Transaction!]
+}
+
+# ─── Payment Types ────────────────────────────────────────────────────────────
+
+type PaymentDetails {
+  paymentId: String
+  status: PaymentStatus
+  amount: TransactionAmount
+  creditor: Creditor
+  debtor: Debtor
+  remittanceInfo: RemittanceInfo
+  executionDate: Date
+  createdAt: DateTime
+}
+
+# ─── Refresh Types ────────────────────────────────────────────────────────────
+
+type RefreshStatus {
+  detail: String!
+  summary: String
+  source: String
+  timestamp: DateTime
+}
+
+type Refresh {
+  accountId: ID!
+  lastRefreshed: DateTime
+  status: RefreshStatus
+  nextRefreshAt: DateTime
+}
+
+# ─── Rate Limit Types ─────────────────────────────────────────────────────────
+
+type RateLimitInfo {
+  limit: Int!
+  remaining: Int!
+  reset: DateTime!
+}
+
+# ─── Error Types ──────────────────────────────────────────────────────────────
+
+type ErrorDetail {
+  field: String
+  code: String
+  description: String
+}
+
+type ErrorResponse {
+  summary: String
+  detail: String
+  statusCode: Int
+  type: String
+  errors: [ErrorDetail!]
+}
+
+# ─── Root Query ───────────────────────────────────────────────────────────────
+
+type Query {
+  """List available institutions filtered by country code"""
+  institutions(country: String!): [Institution!]!
+
+  """Get a specific institution by ID"""
+  institution(id: ID!): Institution
+
+  """List end-user agreements"""
+  agreements(limit: Int, offset: Int): [EndUserAgreement!]!
+
+  """Get a specific end-user agreement"""
+  agreement(id: ID!): EndUserAgreement
+
+  """List requisitions"""
+  requisitions(limit: Int, offset: Int): [Requisition!]!
+
+  """Get a specific requisition and its linked accounts"""
+  requisition(id: ID!): Requisition
+
+  """Get account metadata"""
+  account(id: ID!): Account
+
+  """Get account details (owner, IBAN, etc.)"""
+  accountDetails(id: ID!): AccountDetails
+
+  """Get account balances"""
+  accountBalances(id: ID!): AccountBalances
+
+  """Get account transactions"""
+  accountTransactions(id: ID!, dateFrom: Date, dateTo: Date): AccountTransactions
+
+  """Get countries supported by the API"""
+  countries: [Country!]!
+
+  """Get provider details"""
+  provider: Provider
+
+  """Get current user info"""
+  me: User
+}
+
+# ─── Root Mutation ───────────────────────────────────────────────────────────
+
+type Mutation {
+  """Obtain a token pair using secret_id and secret_key"""
+  createToken(secretId: String!, secretKey: String!): TokenPair
+
+  """Refresh an access token using a refresh token"""
+  refreshToken(refresh: String!): AccessToken
+
+  """Create an end-user agreement"""
+  createAgreement(
+    institutionId: String!
+    maxHistoricalDays: Int
+    accessValidForDays: Int
+    accessScope: [AccessScope!]
+  ): EndUserAgreement
+
+  """Delete an end-user agreement"""
+  deleteAgreement(id: ID!): Boolean
+
+  """Accept an end-user agreement"""
+  acceptAgreement(id: ID!, userAgent: String!, ipAddress: String!): EndUserAgreement
+
+  """Create a requisition"""
+  createRequisition(
+    redirect: URL
+    institutionId: String!
+    reference: String
+    agreement: String
+    userLanguage: String
+    ssn: String
+    accountSelection: Boolean
+    redirectImmediate: Boolean
+  ): Requisition
+
+  """Delete a requisition"""
+  deleteRequisition(id: ID!): Boolean
+
+  """Refresh account data"""
+  refreshAccount(id: ID!): Refresh
+}
