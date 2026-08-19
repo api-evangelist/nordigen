@@ -15,7 +15,7 @@ name: Nordigen
 description: Connect to bank accounts using official bank APIs and get raw transaction
   data
 url: https://nordigen.com/en/account_information_documenation/integration/quickstart_guide/
-specificationVersion: '0.20'
+specificationVersion: '0.23'
 created: '2026-05-28'
 modified: '2026-05-28'
 x-source: public-apis/public-apis
